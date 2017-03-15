@@ -1,16 +1,17 @@
 var express = require("express");
 var app = express();
 var PORT = process.env.PORT || 8080;
+//how does making the express library a function allow us to use all of its methods
 
 app.set("view engine", "ejs");
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-//so app is actually a function??? does that mean all the express libraries
-//are now functions
 app.get("/", (req, res) => {
   res.end("Bonjour!");
 });
@@ -36,6 +37,17 @@ app.get("/urls/:shortURL", (req, res) => {
 //you're rendering above template and using the keys and vlues in other files
 //'urls_show' is the template name. call that name to make use of the template
 //we're calling shortURL + longURL the keys and printing their values to the browser
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // debug statement to see POST parameters
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+//make sure above app.post correspends to the form attribute method in /urls path file
+//express routes are based on paths AND methods!!!
 
 // app.get("views/partials/_header.ejs", (req, res) => {
 //   res.render("_header", _header.ejs);
