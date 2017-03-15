@@ -24,22 +24,24 @@ app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-//is below set up correctly??
 app.get("/urls_index", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id };
+app.get("/urls/:shortURL", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
+//you're rendering above template and using the keys and vlues in other files
+//'urls_show' is the template name. call that name to make use of the template
+//we're calling shortURL + longURL the keys and printing their values to the browser
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
 
-//where is the response???
-//what does res.end mean
-//what does res.json mean
+
+
+
