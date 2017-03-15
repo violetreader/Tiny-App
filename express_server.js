@@ -37,6 +37,10 @@ app.get("/urls/:shortURL", (req, res) => {
 //'urls_show' is the template name. call that name to make use of the template
 //we're calling shortURL + longURL the keys and printing their values to the browser
 
+// app.get("views/partials/_header.ejs", (req, res) => {
+//   res.render("_header", _header.ejs);
+// });
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
