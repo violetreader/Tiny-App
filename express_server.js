@@ -30,6 +30,10 @@ app.get("/urls_index", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
@@ -38,9 +42,6 @@ app.get("/urls/:shortURL", (req, res) => {
 //'urls_show' is the template name. call that name to make use of the template
 //we're calling shortURL + longURL the keys and printing their values to the browser
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-});
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
