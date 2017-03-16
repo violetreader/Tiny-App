@@ -1,7 +1,7 @@
 var express = require("express");
 var app = express();
 var PORT = process.env.PORT || 8080;
-//how does making the express library a function allow us to use all of its methods
+//when do we make libraries a function so we can access all their methods
 
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
@@ -17,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 //below is the code to adding additional endpoints to your server
+//each is called a handler
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -45,22 +46,29 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
-
-  var shorttURL = generateRandomString();
-  urlDatabase[shorttURL] = req.body.longURL;
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
   // // Respond with 'Ok' (we will replace this)
-  res.send("Ok");
-
+  // res.send("Ok");
+  let longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
+  // res.redirect("/urls/" + shorttURL);
 });
 //make sure above app.post correspends to the form attribute method in /urls path file
 //express routes are based on paths AND methods!!!
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+app.get("/urls", (req, res) => {
+  res.render("urls_index", { urls: urlDatabase });
 });
 
-app.get("/urls", (req, res) => {
-  res.render("urls/shorttURL");
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 function generateRandomString(){
@@ -75,7 +83,6 @@ function generateRandomString(){
 
 }
 
-// console.log(generateRandomString());
 
 
 

@@ -6,11 +6,9 @@
 <body>
   <% include partials/_header.ejs %>
   <ul>
-    <li>
-      <!-- urls is the key in our object which we created in our get request for this file.
-      and the value is actually another object (the urlDatabase object) -->
-      <%= urls %>
-    </li>
+      <% for (var i in urls) { %>
+      <li><%= i %> : <%= urls[i] %></li>
+      <% } %>
   </ul>
 </body>
 </html>
