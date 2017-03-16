@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
 };
 
 app.get("/", (req, res) => {
@@ -45,19 +45,37 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // debug statement to see POST parameters
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+
+  var shorttURL = generateRandomString();
+  urlDatabase[shorttURL] = req.body.longURL;
+  // // Respond with 'Ok' (we will replace this)
+  res.send("Ok");
+
 });
 //make sure above app.post correspends to the form attribute method in /urls path file
 //express routes are based on paths AND methods!!!
-
-// app.get("views/partials/_header.ejs", (req, res) => {
-//   res.render("_header", _header.ejs);
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+app.get("/urls", (req, res) => {
+  res.render("urls/shorttURL");
+});
+
+function generateRandomString(){
+
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 6; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+
+}
+
+// console.log(generateRandomString());
 
 
 
