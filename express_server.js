@@ -1,7 +1,10 @@
 var express = require("express");
+var cookieParser = require("cookie-parser");
 var app = express();
+app.use(cookieParser());
 var PORT = process.env.PORT || 8080;
 //how does making libraries a function give us access to all their methods
+
 
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
@@ -42,7 +45,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   let longURL = urlDatabase[shortURL];
@@ -57,7 +59,6 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(req);
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
@@ -68,6 +69,10 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body["username"]);
+  res.redirect("/urls");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
