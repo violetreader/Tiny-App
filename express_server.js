@@ -43,6 +43,10 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/users.json", (req, res) => {
+  res.json(users);
+});
+
 //do we even need this?
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
@@ -72,7 +76,6 @@ app.post("/urls", (req, res) => {
   let longURL = urlDatabase[shortURL];
   res.redirect(longURL);
 });
-//make sure above app.post correspends to the form attribute method in /urls path file
 //express routes are based on paths AND methods!!!
 
 app.get("/u/:shortURL", (req, res) => {
@@ -102,39 +105,38 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register", {username: null});
+  res.render("urls_register", {username: req.cookies["username"]});
 });
 
-  urlDatabase[shortURL] = req.body.longURL;
-  let longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
+app.get("/emptyStr", (req, res) => {
+  res.statusCode = 400;
+  res.render("urls_emptyEmPas", {username: req.cookies["username"]});
+});
 
+app.get("/email_exists", (req, res) => {
+  res.statusCode = 400;
+  res.render("urls_emailExist", {username: req.cookies["username"]});
+});
 
 app.post("/register", (req, res) => {
 
-  const email = req.body.email;
-  const password = req.body.password;
-  const newUserID = generateRandomString();
+  let emailExist = doesEmailExist(req.body.email);
 
-  for (var i in emailKey) {
-    var allEmails = emailKey[i];
-  }
-  if (req.body === "" || req.body.password === "") {
-    res.statusCode(200);
-    console.log("test");
-//how to seeend back a status code + another ejs file to explain to user what's going on
-
-//if email already exist here
-//use for loop, loop through your users object email and check here!
-  // } else if ( &&!password) {
-    // this redirect doesn't tell them what happend.  fix that.
-    res.redirect("/register"); // this is duct
+  if (emailExist) {
+    res.redirect("/email_exists");
+  } else if (req.body.email === "" || req.body.password === "") {
+    res.redirect("/emptyStr");
   } else {
+    const email = req.body.email;
+    const password = req.body.password;
+    const newUserID = generateRandomString();
     users[newUserID] = {};
     users[newUserID].id = newUserID;
-    users[newUserID]["email"] = req.body.email;
+    users[newUserID].email = req.body.email;
     users[newUserID].password = req.body.password;
-    res.cookie("user_id", req.body["newUserID"]);
+
+    res.cookie("user_id", newUserID);
+
     res.redirect("/");
   }
 });
@@ -142,6 +144,7 @@ app.post("/register", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
 
 function generateRandomString(){
 
@@ -152,8 +155,20 @@ function generateRandomString(){
         text += possible.charAt(Math.floor(Math.random() * possible.length));
 
     return text;
-
 }
+
+function doesEmailExist (email) {
+  for (var i in users) {
+    if (users.hasOwnProperty(i)) {
+      if (users[i].email === email) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 
 
 
