@@ -15,8 +15,26 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  },
+  "user3RandomID": {
+    id: "user3RandomID",
+    email: "user3@example.com",
+    password: "justTryingToLearn"
+  }
+}
+
 app.get("/", (req, res) => {
-  res.end("Bonjour!");
+  res.redirect("/urls");
 });
 
 //below is the code to adding additional endpoints to your server
@@ -25,6 +43,7 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+//do we even need this?
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -82,13 +101,47 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/register", (req, res) => {
+  res.render("urls_register", {username: null});
+});
+
+  urlDatabase[shortURL] = req.body.longURL;
+  let longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
+
+
+app.post("/register", (req, res) => {
+
+  const email = req.body.email;
+  const password = req.body.password;
+  const newUserID = generateRandomString();
+
+  for (var i in emailKey) {
+    var allEmails = emailKey[i];
+  }
+  if (req.body === "" || req.body.password === "") {
+    res.statusCode(200);
+    console.log("test");
+//how to seeend back a status code + another ejs file to explain to user what's going on
+
+//if email already exist here
+//use for loop, loop through your users object email and check here!
+  // } else if ( &&!password) {
+    // this redirect doesn't tell them what happend.  fix that.
+    res.redirect("/register"); // this is duct
+  } else {
+    users[newUserID] = {};
+    users[newUserID].id = newUserID;
+    users[newUserID]["email"] = req.body.email;
+    users[newUserID].password = req.body.password;
+    res.cookie("user_id", req.body["newUserID"]);
+    res.redirect("/");
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// app.get("/partials/_header", (req, res) => {
-//   res.render("urls_new");
-// });
 
 function generateRandomString(){
 
@@ -101,6 +154,7 @@ function generateRandomString(){
     return text;
 
 }
+
 
 
 
