@@ -1,8 +1,15 @@
 <header>
-  <h1>This is just a nice header title</h1>
+  <h1>Welcome to Your TinyApp!</h1>
 </header>
-<form action="/login" method="POST">
+<% if (username) { %>
+<p>Hello User <b> <%= username %></b></p>
+<form action="/logout" method="POST">
+  <input type="submit" value="Logout">
+</form>
+<% } else { %>
+<form action="/login" method="POST"?
   <label for="username">Enter a Cool Username: </label>
   <input id="username" type="text" name="username" placeholder="type here" style="width: 300px">
   <input type="submit" value="Sign in">
 </form>
+<% } %>
