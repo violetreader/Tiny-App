@@ -1,10 +1,16 @@
 <header>
-  <a href = "/"><h1>Welcome to Your TinyApp!</h1></a>
-  <a href = "register">Register here!</a>
+  <a href = "/urls"><h1>Welcome to Your TinyApp!</h1></a>
+  <a href = "/">Home Page</a>
   <br>
-  <a href = "login">Login here!</a>
+  <br>
+  <% if(user_id) { %>
+  <p>Hello user: <%= user_id; %></p>
   <form action="/logout" method="POST">
     <button id="logout" type="submit">Logout</button>
   </form>
+  <% } else { %>
+    <a href = "/login">Login here!</a>
+    <br>
+    <br>
+  <% } %>
 </header>
-

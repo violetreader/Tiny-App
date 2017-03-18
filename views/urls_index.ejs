@@ -5,14 +5,27 @@
 </head>
 <body>
   <% include partials/_header.ejs %>
+  <form action="/urls/new" method="GET">
+    <button id="newURL" type="submit">Create a New URL</button>
+  </form>
   <ul>
-      <% for (var i in urls) { %>
-      <li><%= i %> : <%= urls[i] %></li>
-      <form method="POST" action="/urls/<%= i %>/delete">
-        <input type="submit" value="Delete">
-        <a href = "urls/<%= i %>">Edit</a>
-      <% } %>
-      </form>
+  <table border="1" width="70%">
+    <% for (var i in urls) { %>
+        <tr>
+          <td>ShortURL</td><td><%= i %></td><td>LongURL</td><td><%= urls[i].longURL %></td>
+            <% if (user_id) { %>
+              <form method="POST" action="/urls/<%= i %>/delete">
+                <td><input type="submit" value="Delete"></td>
+                <td><a href = "urls/<%= i %>">Edit</a></td>
+              </form>
+            <% } %>
+        </tr>
+    <% } %>
+  </table>
   </ul>
 </body>
 </html>
+
+
+
+

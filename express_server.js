@@ -11,8 +11,14 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  "b2xVn2": {
+    "longURL": "http://www.lighthouselabs.ca",
+    "user_id": "userRandomID"
+  },
+  "9sm5xK": {
+    "longURL": "http://www.google.com",
+    "user_id": "user2RandomID"
+  }
 };
 
 const users = {
@@ -35,7 +41,7 @@ const users = {
 
 
 app.get("/", (req, res) => {
-  res.redirect("/urls");
+  res.render("urls_home", { user_id: req.cookies["user_id"]});
 });
 
 //below is the code to adding additional endpoints to your server
@@ -54,22 +60,41 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL,
-                      longURL: urlDatabase[req.params.shortURL],
-                      urls: urlDatabase,
-                      user_id: req.cookies["user_id"]};
-  res.render("urls_index", templateVars);
-  console.log(req.body);
+
+  let templateVars = {  urls: urlDatabase,
+                        user_id: req.cookies["user_id"]};
+    res.render("urls_index", templateVars);
+  // console.log(req.body);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", templateVars);
+  res.render("urls_new");
+});
+
+app.post("/urls/new", (req, res) => {
+// true if user is not registered
+  if (!(req.cookies["user_id"])) {
+    res.status(401);
+    res.redirect("/login");
+  } else {
+    // console.log(req.body); //outputs: { longURL: 'www.cool.com' } YES
+    // console.log(req.cookies); // outputs: { user_id: 'ybgtv2' } YES
+    let userID = req.cookies["user_id"];
+    let shortURL = generateRandomString();
+    let longURL = req.body.longURL;
+    let uniqueShortURL = {
+      "longURL": longURL,
+      "user_id": userID
+    }
+    urlDatabase[shortURL] = uniqueShortURL;
+    res.redirect("/");
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL,
                       longURL: urlDatabase[req.params.shortURL],
-                        user_id: req.cookies["user_id"] };
+                      user_id: req.cookies["user_id"] };
   res.render("urls_show", templateVars);
 });
 
@@ -91,9 +116,30 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+// var urlDatabase = {
+//   "b2xVn2": {
+//     "longURL": "http://www.lighthouselabs.ca",
+//     "user_id": "userRandomID"
+//   },
+
+  //   let userID = req.cookies["user_id"];
+  //   let shortURL = generateRandomString();
+  //   let longURL = req.body.longURL;
+  //   let uniqueShortURL = {
+  //     "longURL": longURL,
+  //     "user_id": userID
+  //   }
+  //   urlDatabase[shortURL] = uniqueShortURL;
+  //   res.redirect("/");
+  // }
+
 app.post("/urls/:shortURL", (req, res) => {
   var newURL = req.body["longURL"];
-  urlDatabase[req.params.shortURL] = newURL;
+  var ObjBod = {
+    "longURL": newURL,
+    "user_id": req.cookies["user_id"]
+  }
+  urlDatabase[req.params.shortURL] = ObjBod;
   res.redirect("/urls");
 });
 
@@ -102,16 +148,16 @@ app.post("/login", (req, res) => {
   let user = emailMatchesPassCheck(req.body.email, req.body.password);
   if (user) {
     res.cookie("user_id", user.id);
-    res.redirect("/");
+    res.redirect("/urls");
   } else {
     res.status(401);
-    res.send("Enter valid email and password");
+    res.send("ERROR Enter valid email and password");
   }
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/");
 });
 
 app.get("/register", (req, res) => {
@@ -150,7 +196,7 @@ app.post("/register", (req, res) => {
 
     res.cookie("user_id", newUserID);
 
-    res.redirect("/");
+    res.redirect("/urls");
   }
 });
 
