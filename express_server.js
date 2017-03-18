@@ -33,6 +33,7 @@ const users = {
   }
 }
 
+
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
@@ -53,20 +54,22 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = {  urls: urlDatabase,
-                        username: req.cookies["username"]
-   };
+  let templateVars = { shortURL: req.params.shortURL,
+                      longURL: urlDatabase[req.params.shortURL],
+                      urls: urlDatabase,
+                      user_id: req.cookies["user_id"]};
   res.render("urls_index", templateVars);
+  console.log(req.body);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", {username: req.cookies["username"]});
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL,
                       longURL: urlDatabase[req.params.shortURL],
-                        username: req.cookies["username"] };
+                        user_id: req.cookies["user_id"] };
   res.render("urls_show", templateVars);
 });
 
@@ -94,28 +97,38 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
+// separate function below so email and pass aren't together
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body["username"]);
-  res.redirect("/urls");
+  let user = emailMatchesPassCheck(req.body.email, req.body.password);
+  if (user) {
+    res.cookie("user_id", user.id);
+    res.redirect("/");
+  } else {
+    res.status(401);
+    res.send("Enter valid email and password");
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register", {username: req.cookies["username"]});
+  let templateVars = { shortURL: req.params.shortURL,
+                      longURL: urlDatabase[req.params.shortURL],
+                      user_id: req.cookies["user_id"]};
+  res.render("urls_register", templateVars);
 });
 
 app.get("/emptyStr", (req, res) => {
-  res.statusCode = 400;
-  res.render("urls_emptyEmPas", {username: req.cookies["username"]});
+  res.status(400);
+  res.render("urls_emptyEmPas", { user_id: req.cookies["user_id"] });
 });
 
-app.get("/email_exists", (req, res) => {
-  res.statusCode = 400;
-  res.render("urls_emailExist", {username: req.cookies["username"]});
+app.get("/email_exists_already", (req, res) => {
+  res.status(400);
+  res.render("urls_emailExist", { user_id: req.cookies["user_id"] });
 });
 
 app.post("/register", (req, res) => {
@@ -123,7 +136,7 @@ app.post("/register", (req, res) => {
   let emailExist = doesEmailExist(req.body.email);
 
   if (emailExist) {
-    res.redirect("/email_exists");
+    res.redirect("/email_exists_already");
   } else if (req.body.email === "" || req.body.password === "") {
     res.redirect("/emptyStr");
   } else {
@@ -139,6 +152,13 @@ app.post("/register", (req, res) => {
 
     res.redirect("/");
   }
+});
+
+app.get("/login", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL,
+                      longURL: urlDatabase[req.params.shortURL],
+                      user_id: req.cookies["user_id"]};
+  res.render("urls_login", templateVars);
 });
 
 app.listen(PORT, () => {
@@ -168,6 +188,19 @@ function doesEmailExist (email) {
   return false;
 }
 
+
+function emailMatchesPassCheck (email, password) {
+  for (var i in users) {
+    if (users.hasOwnProperty(i)) {
+      if (users[i].email === email) {
+        if (users[i].password === password) {
+          return users[i];
+        }
+      }
+    }
+  }
+  return false;
+}
 
 
 
