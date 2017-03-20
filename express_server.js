@@ -60,16 +60,32 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-
+  let currUserMatch = userIDMatchLoggedInUser(req.cookies.user_id);
   let templateVars = {  urls: urlDatabase,
-                        user_id: req.cookies["user_id"]};
-    res.render("urls_index", templateVars);
-  // console.log(req.body);
+                        user_id: req.cookies.user_id,
+                        match: currUserMatch,
+                        currLongURL: req.body.longURL }
+  // console.log(req.cookies.user_id);  // gave us user_id!
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  res.render("urls_new", { user_id: req.cookies["user_id"]});
 });
+
+// all code below commented out is for nothing?? dont remove ask mentor for advice about this first
+
+// app.get("/urls_login", (req,res) => {
+
+// });
+
+// app.post("/urls_login", (req, res) => {
+//   if (req.cookies["user_id"]) {
+//     res.redirect("/urls/new");
+//   } else {
+//     res.redirect("/urls_login");
+//   }
+// });
 
 app.post("/urls/new", (req, res) => {
 // true if user is not registered
@@ -87,7 +103,8 @@ app.post("/urls/new", (req, res) => {
       "user_id": userID
     }
     urlDatabase[shortURL] = uniqueShortURL;
-    res.redirect("/");
+    urlDatabase[shortURL].user_id = userID;
+    res.redirect("/urls");
   }
 });
 
@@ -116,24 +133,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// var urlDatabase = {
-//   "b2xVn2": {
-//     "longURL": "http://www.lighthouselabs.ca",
-//     "user_id": "userRandomID"
-//   },
-
-  //   let userID = req.cookies["user_id"];
-  //   let shortURL = generateRandomString();
-  //   let longURL = req.body.longURL;
-  //   let uniqueShortURL = {
-  //     "longURL": longURL,
-  //     "user_id": userID
-  //   }
-  //   urlDatabase[shortURL] = uniqueShortURL;
-  //   res.redirect("/");
-  // }
-
 app.post("/urls/:shortURL", (req, res) => {
+
   var newURL = req.body["longURL"];
   var ObjBod = {
     "longURL": newURL,
@@ -207,6 +208,7 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -236,11 +238,11 @@ function doesEmailExist (email) {
 
 
 function emailMatchesPassCheck (email, password) {
-  for (var i in users) {
-    if (users.hasOwnProperty(i)) {
-      if (users[i].email === email) {
-        if (users[i].password === password) {
-          return users[i];
+  for (var key in users) {
+    if (users.hasOwnProperty(key)) {
+      if (users[key].email === email) {
+        if (users[key].password === password) {
+          return users[key];
         }
       }
     }
@@ -248,8 +250,50 @@ function emailMatchesPassCheck (email, password) {
   return false;
 }
 
+// confusing how id and id are the same. Same as function above
+function userIDMatchLoggedInUser (id) {
+  for (var key in urlDatabase) {
+    if (urlDatabase.hasOwnProperty(key)) {
+      if (urlDatabase[key].user_id === id) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+  // let currUserMatch = userIDMatchLoggedInUser(req.cookies.user_id);
+// let user = emailMatchesPassCheck(req.body.email, req.body.password);
+
+// ar urlDatabase = {
+//   "b2xVn2": {
+//     "longURL": "http://www.lighthouselabs.ca",
+//     "user_id": "userRandomID"
+//   },
+//   "9sm5xK": {
+//     "longURL": "http://www.google.com",
+//     "user_id": "user2RandomID"
+//   }
+// };
 
 
+
+
+  // TODO:
+  // we need to check if the user is logged in, and if the user belongs to the short url
+  // can do with a for in loop
+  // for(var key in Object){}
+  // for(var tinyurl in urldatabase) {}
+  // this will loop over the keys in the url database
+  // to access the userid you will go
+  // Object[key] will give us the {} with the user_id as the next key to get the users id
+  // who owns the short url eg.
+  // urldatabase[tinyurl].user_id
+
+
+//TO DO
+//if ()
+//if tinyurl exist then send to new html page that has all the tiny urls
+//function will return true
 
 
 
