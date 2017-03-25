@@ -10,17 +10,15 @@
   </form>
   <ul>
   <table border="1" width="70%">
-  <% if (match.longURL === urls.longURL) { %>
     <% for (var i in urls) { %>
-        <tr>
-          <td>ShortURL</td><td><%= i %></td><td>LongURL</td><td><%= urls[i].longURL %></td>
-            <form method="POST" action="/urls/<%= i %>/delete">
-              <td><input type="submit" value="Delete"></td>
-              <td><a href = "urls/<%= i %>">Edit</a></td>
-            </form>
-        </tr>
+      <tr>
+        <td>ShortURL</td><td><%= i %></td><td>LongURL</td><td><%= urls[i].longURL %></td>
+        <form method="POST" action="/urls/<%= i %>/delete">
+          <td><input type="submit" value="Delete"></td>
+          <td><a href = "urls/<%= i %>">Edit</a></td>
+        </form>
+      </tr>
     <% } %>
-  <% } %>
   </table>
   </ul>
 </body>
