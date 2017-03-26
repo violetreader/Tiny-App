@@ -13,6 +13,9 @@
         <input type="text" name="longURL" placeholder="enter long url here">
         <input type="submit" value="Update">
       </form>
+      <form method="POST" action="/urls/<%= shortURL %>/delete">
+        <input type="submit" value="Delete" style="margin-left: 138px">
+      </form>
     </li>
   </ul>
 </body>

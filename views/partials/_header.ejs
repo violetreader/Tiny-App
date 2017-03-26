@@ -4,12 +4,14 @@
   <br>
   <br>
   <% if(user_id) { %>
-  <p>Hello user: <%= user_id; %></p>
+  <p><b>Hello user:</b> <%= user_id %></p>
+  <p><b>Your email is:</b> <%= email %></p>
+  <p>Your URL link page is <a href="/urls">here</a></p>
   <form action="/logout" method="POST">
     <button id="logout" type="submit">Logout</button>
   </form>
   <% } else { %>
-    <a href = "/login">Login here!</a>
+    <a href = "/login">Login here <b>or</b> <a href ="/register">Register here!</a></a>
     <br>
     <br>
   <% } %>

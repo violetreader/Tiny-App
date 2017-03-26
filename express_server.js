@@ -8,7 +8,7 @@ app.use(cookieSession({
 var PORT = process.env.PORT || 8080;
 //how does making libraries a function give us access to all their methods
 const bcrypt = require('bcrypt');
-
+//express routes are based on paths AND methods!!!
 
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
@@ -34,18 +34,21 @@ const users = {
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "2"
   },
   "user3RandomID": {
     id: "user3RandomID",
     email: "user3@example.com",
-    password: "justTryingToLearn"
+    password: "3"
   }
 }
 
-
 app.get("/", (req, res) => {
-  res.render("urls_home", { user_id: req.session["user_id"]});
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 //below is the code to adding additional endpoints to your server
@@ -59,43 +62,50 @@ app.get("/users.json", (req, res) => {
   res.json(users);
 });
 
-//do we even need this?
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 app.get("/urls", (req, res) => {
 
-  // console.log(req.session.user_id);
-  // let SessionMatch = userIDMatchLoggedInUser(req.session.user_id);
-  if (req.session.user_id) {
-    console.log(req.session);
-    console.log(req.session.user_id);
-    // console.log(SessionMatch);
-    console.log(urlDatabase);
-    let templateVars = {  urls: sessionURLSobj(req.session.user_id),
-                          user_id: req.session.user_id,
-                          // sMatch: SessionMatch,
-                          currLongURL: req.body.longURL };
-    //because our cookies saved on our browser! and that's where
-    //we are getting it from!!
-    res.render("urls_index", templateVars);
-  } else {
-    res.send("please login in order to see some URLS!")
-  }
+    if (req.session.user_id) {
+// console.log("session is there");
+      let userEmail = users[req.session.user_id];
+      let templateVars = {  urls: sessionURLSobj(req.session.user_id),
+                            user_id: req.session.user_id,
+                            currLongURL: req.body.longURL,
+                            email: userEmail.email
+                             };
+      res.status(200);
+      res.render("urls_index", templateVars);
+    }
+    else {
+// console.log("session is not there");
+      res.status(401);
+      res.send('Please login in order to see URLS, <a href="/login">Login here</a>');
+    }
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", { user_id: req.session["user_id"]});
+
+  if (!(req.session.user_id)) {
+    res.status(401);
+    res.send('Please login in order to see and create URLS, <a href="/login">Login here</a>');
+  } else {
+    res.status(200);
+    let templateVars = {  urls: sessionURLSobj(req.session.user_id),
+                            user_id: req.session.user_id,
+                            currLongURL: req.body.longURL,
+                            email: users[req.session.user_id].email
+                             };
+    res.render("urls_new", templateVars);
+  }
 });
 
 
-app.post("/urls/new", (req, res) => {
+app.post("/urls", (req, res) => {
 // true if user is not registered
-  if (!((req.session)["user_id"])) {
+  if (!(req.session.user_id)) {
     res.status(401);
-    res.redirect("/login");
+    res.send("You must be logged in to create a url login <a href= '/login'>here</a>");
   } else {
+    let id = req.session.user_id;
     let userID = req.session["user_id"];
     let shortURL = generateRandomString();
 //longURL is connected to the form input element by the name attribute
@@ -106,35 +116,23 @@ app.post("/urls/new", (req, res) => {
       "user_id": userID
     }
     urlDatabase[shortURL] = uniqueShortURL;
-    res.redirect("/urls");
+    res.redirect("/urls/" + shortURL);
   }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log("urlData: ", urlDatabase);
-  // console.log("req.body: ", req.body);
-  // console.log("req.params: ", req.params);
-  console.log("req.params.shortURL: ", req.params.shortURL);
-  let shrtURL = req.params.shortURL;
-  // console.log("in req.sessionL ", req.session);
-  console.log("longurl: ",  urlDatabase[shrtURL].longURL);
-  let lrgURL = urlDatabase[shrtURL].longURL;
-  // res.send("you will be redirected shortly");
-  res.redirect(lrgURL);
-});
 
-app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  let longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
-});
-//express routes are based on paths AND methods!!!
-
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  console.log(urlDatabase[req.params.shortURL]);
-  res.redirect(longURL);
+  console.log(req.params.shortURL);
+  let UrlIsReal = tinyUrlExist(req.params.shortURL);
+  if (UrlIsReal) {
+    let shrtURL = req.params.shortURL;
+    let lrgURL = urlDatabase[shrtURL].longURL;
+    res.redirect(lrgURL);
+  }
+  else {
+    res.status(404);
+    res.send("Please use a valid tinyURL");
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -144,27 +142,71 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/urls/:shortURL", (req, res) => {
+app.post("/urls/:shortURL", (req, res) => {
 
-  var newURL = req.body["longURL"];
-  var ObjBod = {
-    "longURL": newURL,
-    "user_id": req.session["user_id"]
+    if (!(urlDatabase[req.params.shortURL])) {
+  //status is not found but resource may be available in future
+    res.status(404);
+    res.send("This URL doesn't currently exist.");
+    return;
   }
-  urlDatabase[req.params.shortURL] = ObjBod;
-  let templateVars = { shortURL: req.params.shortURL,
-                      longURL: urlDatabase[req.params.shortURL].longURL
-                      ,
-                      user_id: req.session["user_id"]};
-  res.render("urls_show", templateVars);
+  if (!(req.session.user_id)) {
+    res.status(401);
+    res.send("You must be logged in to update, login <a href= '/login'>here</a>");
+    return;
+  }
+//if logged in AND if id doesnt match urlid then go through this statement!!!!
+  if (req.session.user_id && urlDatabase[req.params.shortURL].user_id != req.session.user_id) {
+  //status is forbidden
+    res.status(403);
+    res.send("You must be the creator to update this URL");
+    return;
+  }
+  else {
+//code below grabs old longurl from our databse and puts in the new inputted value
+//updating our newURL
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL
+  res.redirect("/urls/" + req.params.shortURL);
+  }
 });
 
-// separate function below so email and pass aren't together
+app.get("/urls/:shortURL", (req, res) => {
+
+    if (!(urlDatabase[req.params.shortURL])) {
+  //status is not found but resource may be available in future
+    res.status(404);
+    res.send("This URL doesn't currently exist.");
+    return;
+  }
+  if (!(req.session.user_id)) {
+    res.status(401);
+    res.send("You must be logged in to update and delete urls login <a href= '/login'>here</a>");
+    return;
+  }
+//if logged in AND if id doesnt match urlid then go through this statement!!!!
+  if (req.session.user_id && urlDatabase[req.params.shortURL].user_id != req.session.user_id) {
+  //status is forbidden
+    res.status(403);
+    res.send("You must be the creator to update and delete this URL");
+    return;
+  }
+  else {
+    console.log("session shortURL: ", urlDatabase[req.params.shortURL]);
+    console.log(req.session.user_id);
+    res.status(200);
+    let templateVars = { shortURL: req.params.shortURL,
+                        longURL: urlDatabase[req.params.shortURL].longURL,
+                        email: users[req.session.user_id].email,
+                        user_id: req.session["user_id"]};
+    res.render("urls_show", templateVars);
+  }
+});
+
 app.post("/login", (req, res) => {
   let user = emailMatchesPassCheck(req.body.email, req.body.password);
   if (user) {
     req.session.user_id = user.id;
-    res.redirect("/urls");
+    res.redirect("/");
   } else {
     res.status(401);
     res.send("ERROR Enter valid email and password");
@@ -173,14 +215,22 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   delete req.session.user_id;
+  req.session.user_id = null;
   res.redirect("/");
 });
 
 app.get("/register", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL,
-                      longURL: urlDatabase[req.params.shortURL],
-                      user_id: req.session["user_id"]};
-  res.render("urls_register", templateVars);
+
+  if (req.session.user_id) {
+    res.redirect("/");
+  }
+  else {
+    res.status(200);
+    let templateVars = { shortURL: req.params.shortURL,
+                        longURL: urlDatabase[req.params.shortURL],
+                        user_id: req.session["user_id"]};
+    res.render("urls_register", templateVars);
+  }
 });
 
 app.get("/emptyStr", (req, res) => {
@@ -199,8 +249,10 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   const hashed_password = bcrypt.hashSync(password, 10);
   if (emailExist) {
+    res.status(400);
     res.redirect("/email_exists_already");
   } else if (req.body.email === "" || req.body.password === "") {
+    res.status(400);
     res.redirect("/emptyStr");
   } else {
     const email = req.body.email;
@@ -212,15 +264,22 @@ app.post("/register", (req, res) => {
 
     req.session.user_id = newUserID;
 
-    res.redirect("/urls");
+    res.redirect("/");
   }
 });
 
 app.get("/login", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL,
-                      longURL: urlDatabase[req.params.shortURL],
-                      user_id: req.session["user_id"]};
-  res.render("urls_login", templateVars);
+
+  if (req.session.user_id) {
+    res.redirect("/");
+  }
+  else {
+    res.status(200);
+    let templateVars = { shortURL: req.params.shortURL,
+                        longURL: urlDatabase[req.params.shortURL],
+                        user_id: req.session["user_id"]};
+    res.render("urls_login", templateVars);
+  }
 });
 
 
@@ -262,15 +321,15 @@ function emailMatchesPassCheck (email, password) {
   return null;
 }
 
-// function userIDMatchLoggedInUser (id) {
-
-//   for (var key in urlDatabase) {
-//     if (urlDatabase[key].user_id === id) {
-//       return true;
-//     }
-//   }
-//   return false;
-// }
+//why didn't urlDatabase[key] work but key did ??????????
+function tinyUrlExist (shortURL) {
+  for (var key in urlDatabase) {
+    if (key === shortURL) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function sessionURLSobj (id) {
   var ansObj = {};
